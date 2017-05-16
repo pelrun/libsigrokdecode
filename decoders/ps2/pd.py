@@ -82,15 +82,16 @@ class Decoder(srd.Decoder):
         if self.bitcount > 0:
             b = self.bits[self.bitcount - 1]
             self.bits[self.bitcount - 1] = Bit(b.val, b.ss, self.samplenum)
-        if self.bitcount == 11:
-            self.bitwidth = self.bits[1].es - self.bits[2].es
-            b = self.bits[-1]
-            self.bits[-1] = Bit(b.val, b.ss, b.es + self.bitwidth)
 
         # Find all 11 bits. Start + 8 data + odd parity + stop.
-        if self.bitcount < 11:
+        if self.bitcount < 10:
             self.bitcount += 1
             return
+
+        # Fix up the width of the stop bit
+        self.bitwidth = self.bits[2].es - self.bits[1].es
+        b = self.bits[-1]
+        self.bits[-1] = Bit(b.val, b.ss, b.ss + self.bitwidth)
 
         # Extract data word.
         word = 0
